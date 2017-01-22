@@ -1,7 +1,6 @@
 import numpy as np
 from random import shuffle
 
-
 def svm_loss_naive(W, X, y, reg):
     """
     Structured SVM loss function, naive implementation (with loops).
@@ -73,12 +72,18 @@ def svm_loss_vectorized(W, X, y, reg):
     ##########################################################################
     num_train = X.shape[0]
     num_classes = W.shape[1]
-    scores = X.dot(W) # (N , C)
-    answers = np.reshape(np.array(map(lambda a,b:a[b], scores,y)), (500,1))
-    #print(answers.shape,answers )
-
-    margins = scores - answers + 1
-    loss = np.sum(margins[margins>0])
+    scores = X.dot(W)# (N , C)
+    #answers = np.reshape(np.array(map(lambda a, b: a[b], scores, y)), (500, 1))
+    answers = np.reshape(scores[xrange(num_train), y], (500, 1))
+    mask = np.zeros((num_train, num_classes))
+    mask.fill(True)
+    print(mask.shape)
+    #for i in range(500):
+    #    mask[i, y[i]] = False
+    mask[xrange(num_train), y] = False
+    margins = scores*mask - answers*mask + 1*mask
+    print(margins.shape)
+    loss = np.sum(margins[margins > 0])
     loss /= num_train
     loss += 0.5 * reg * np.sum(W * W)
     ##########################################################################
@@ -94,7 +99,17 @@ def svm_loss_vectorized(W, X, y, reg):
     # to reuse some of the intermediate values that you used to compute the     #
     # loss.                                                                     #
     ##########################################################################
-
+    #dW[:, j] += X[i,:] #(D, C)
+    #dW[:, y[i]] += X[i,:]
+    print('margin',margins.shape)
+    tt = np.dot(X.T, margins>0) #(D ,N) * (N, C)
+    print('tt',tt.shape)
+    
+    dW += tt
+    #dW += np.sum(X, axis = 0).reshape(-1,1) 
+    #dW -= 
+    dW /= num_train
+    dW += reg* W
     ##########################################################################
     #                             END OF YOUR CODE                              #
     ##########################################################################
